@@ -1,0 +1,25 @@
+# Archivos temporales y de reportes (mantener estructura pero ignorar contenido)
+reports/*.xml
+reports/*.html
+reports/processed/*.html
+
+# Mantener solo el README de la carpeta reports
+!reports/README.md
+
+# Archivos temporales de Windows
+*.tmp
+*.temp
+Thumbs.db
+desktop.ini
+
+# Archivos de instalación
+*.exe
+*.msi
+
+# Logs
+*.log
+
+# Python no usado
+*.py
+*.pyc
+__pycache__/

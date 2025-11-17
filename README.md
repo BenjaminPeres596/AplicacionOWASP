@@ -1,71 +1,164 @@
-# AplicacionOWASP - Comparación de Niveles de Seguridad
+# AplicacionOWASP - Análisis Comparativo de Seguridad
 
-**1. Levantar solo app vulnerable (sin protección):**
+Proyecto que demuestra cómo diferentes configuraciones nginx afectan la seguridad de una aplicación web mediante análisis automatizados con OWASP ZAP.
 
-docker compose up -d juice-shop
+## ⚡ INICIO RÁPIDO
 
-Accedé a http://localhost:3000 para ver la app.
+**Un solo comando ejecuta todo el análisis:**
 
-**2. Correr el escaneo de seguridad inicial con ZAP:**
+```powershell
+.\run-full-analysis.ps1
+```
 
-docker compose run --rm -w /zap/wrk zap zap-baseline.py -t http://juice-shop:3000 -r reporte-directo.html -x reporte-directo.xml -I
+**¿Qué hace?** Levanta contenedores → Ejecuta 4 escaneos ZAP → Genera reportes HTML → Abre resultados  
+**Tiempo:** ~5 minutos
 
-## 🛡️ Servidores con Diferentes Niveles de Seguridad
+---
 
-**3a. Servidor Ultra-Seguro (Máximo Endurecimiento):**
+## 🎯 COMANDOS DISPONIBLES
 
-docker compose up -d ultra-secure-proxy
+### Análisis Principal
 
-Accedé en http://localhost:8080
+```powershell
+# Análisis rápido (baseline - 1 min por servidor)
+.\run-full-analysis.ps1
 
-**3b. Servidor Moderadamente Seguro:**
+# Análisis detallado (2 min por servidor)
+.\run-full-analysis.ps1 -ScanType full
 
-docker compose up -d moderate-secure-proxy
+# Análisis exhaustivo (5 min por servidor)
+.\run-full-analysis.ps1 -ScanType full -ScanTime 5
+```
 
-Accedé en http://localhost:8081
+### Análisis Adicionales
 
-**3c. Servidor Básico (Mínima Seguridad):**
+```powershell
+# Headers de seguridad
+.\security-headers-analysis.ps1
 
-docker compose up -d basic-proxy
+# Rate limiting
+.\rate-limiting-test.ps1 -Url "http://localhost:8080" -NumRequests 200
+```
 
-Accedé en http://localhost:8082
+---
 
-## 🔍 Análisis de Seguridad (2 minutos)
+## 🛡️ NIVELES DE SEGURIDAD ANALIZADOS
 
-**4a. Escaneo Servidor Ultra-Seguro:**
+| Nivel            | Puerto | Rate Limiting | Headers Seguridad | CSP         | Vulnerabilidades |
+| ---------------- | ------ | ------------- | ----------------- | ----------- | ---------------- |
+| **Ultra-Seguro** | 8080   | Muy Estricto  | Completos         | Restrictiva | Mínimas          |
+| **Moderado**     | 8081   | Moderado      | Básicos           | Permisiva   | Algunas          |
+| **Básico**       | 8082   | Ninguno       | Mínimos           | Ninguna     | Muchas           |
+| **Juice-Shop**   | 3000   | Ninguno       | Ninguno           | Ninguna     | Máximas          |
 
-docker compose run --rm -w /zap/wrk zap zap-full-scan.py -t http://ultra-secure-proxy:80 -m 2 -r reporte-ultra-seguro.html -x reporte-ultra-seguro.xml -I
+---
 
-**4b. Escaneo Servidor Moderado:**
+## 📊 RESULTADOS
 
-docker compose run --rm -w /zap/wrk zap zap-full-scan.py -t http://moderate-secure-proxy:80 -m 2 -r reporte-moderado.html -x reporte-moderado.xml -I
+**Archivos generados:**
 
-**4c. Escaneo Servidor Básico:**
+- `./reports/reporte-*.xml` - Reportes originales OWASP ZAP
+- `./reports/processed/reporte-simple-*.html` - Reportes HTML mejorados
 
-docker compose run --rm -w /zap/wrk zap zap-full-scan.py -t http://basic-proxy:80 -m 2 -r reporte-basico.html -x reporte-basico.xml -I
+**Lo que verás:**
 
-## Análisis Super Intenso (OPCIONAL)
+1. **Ultra-Seguro** → Pocas vulnerabilidades detectadas
+2. **Moderado** → Vulnerabilidades intermedias
+3. **Básico** → Muchas vulnerabilidades
+4. **Juice-Shop** → Máximas vulnerabilidades (sin protección nginx)
 
-**5. Reporte Super Intenso (Sin Límite de Tiempo):**
+---
 
-docker compose run --rm -w /zap/wrk zap zap-full-scan.py -t http://ultra-secure-proxy:80 -a -r reporte-maxima-exigencia.html -x reporte-maxima-exigencia.xml -I
+## 🐳 COMANDOS DOCKER (Opcional - Manual)
 
-**ADVERTENCIA**: Este análisis es extremadamente exhaustivo y puede tardar.
+```bash
+# Levantar todos los servicios
+docker compose up -d
 
-**¿Por qué es super intenso?**
+# Ver contenedores activos
+docker ps
 
-- **Sin límite de tiempo** (`sin -m`): Análisis completo hasta agotar todas las pruebas
-- **Modo agresivo** (`-a`): Incluye ataques activos que pueden modificar datos
-- **Spider profundo**: Explora cada endpoint, formulario y API descubierto
-- **Fuzzing exhaustivo**: Prueba cientos de payloads de inyección SQL, XSS, etc.
-- **Testing completo**: Autenticación, sesiones, CORS, CSP bypass, path traversal
-- **Ataques de fuerza bruta**: En formularios de login y parámetros
+# Parar todo
+docker compose down
+```
 
-## Comparación de Niveles de Seguridad
+---
 
-| Nivel            | Puerto | Rate Limiting | Headers Seguridad | CSP         | Vulnerabilidades Esperadas |
-| ---------------- | ------ | ------------- | ----------------- | ----------- | -------------------------- |
-| **Ultra-Seguro** | 8080   | Muy Estricto  | Completos         | Restrictiva | Mínimas                    |
-| **Moderado**     | 8081   | Moderado      | Básicos           | Permisiva   | Algunas                    |
-| **Básico**       | 8082   | Ninguno       | Mínimos           | Ninguna     | Muchas                     |
-| **Sin Proxy**    | 3000   | Ninguno       | Ninguno           | Ninguna     | Máximas                    |
+## 🔧 TROUBLESHOOTING
+
+**Si algo no funciona:**
+
+1. **Verificar Docker:**
+
+   ```bash
+   docker --version
+   docker compose --version
+   ```
+
+2. **Limpiar y reiniciar:**
+
+   ```bash
+   docker compose down --remove-orphans
+   docker compose up -d
+   ```
+
+3. **Verificar puertos activos:**
+   ```bash
+   docker ps
+   ```
+   Deberías ver: 3000, 8080, 8081, 8082
+
+## 📁 Estructura del Proyecto
+
+```
+├── docker-compose.yml              # Configuración de contenedores
+├── nginx/                          # Configuraciones nginx
+│   ├── ultra-secure.conf          # Configuración máxima seguridad
+│   ├── moderate-secure.conf       # Configuración intermedia
+│   └── basic.conf                 # Configuración básica
+├── run-full-analysis.ps1          # Script principal de análisis
+├── zap-report-processor-simple.ps1 # Procesador de reportes
+└── reports/                        # Directorio de reportes
+    ├── *.xml                      # Reportes originales ZAP
+    └── processed/                 # Reportes HTML mejorados
+```
+
+## 🎯 OBJETIVO DEL PROYECTO
+
+Demostrar cómo diferentes configuraciones nginx afectan la seguridad mediante:
+
+1. **Configuraciones nginx progresivas** (básica → moderada → ultra-segura)
+2. **Escaneos automatizados con OWASP ZAP**
+3. **Análisis comparativo de vulnerabilidades**
+4. **Reportes visuales y profesionales**
+
+**Resultado:** Evidencia clara de cómo las configuraciones de seguridad impactan en el número y severidad de vulnerabilidades detectadas.
+
+---
+
+## 📋 CHECKLIST DE USO
+
+- [ ] Abrir PowerShell en la carpeta del proyecto
+- [ ] Ejecutar `.\run-full-analysis.ps1`
+- [ ] Esperar ~5 minutos
+- [ ] Revisar reportes en `reports/processed/`
+- [ ] Comparar diferencias entre los 4 niveles
+- [ ] (Opcional) Ejecutar análisis adicionales de headers y rate limiting
+
+¡Eso es todo! 🎉
+| **Básico** | 8082 | Ninguno | Mínimos | Ninguna | Muchas |
+| **Sin Proxy** | 3000 | Ninguno | Ninguno | Ninguna | Máximas |
+
+## 🛠️ Scripts Adicionales
+
+**Pruebas de Rate Limiting:**
+
+```powershell
+.\rate-limiting-test.ps1 -Url "http://localhost:8080" -NumRequests 100
+```
+
+**Análisis de Headers de Seguridad:**
+
+```powershell
+.\security-headers-analysis.ps1
+```
