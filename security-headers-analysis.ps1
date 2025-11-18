@@ -134,7 +134,16 @@ $securityHeaders = @(
     "Permissions-Policy",
     "Cross-Origin-Opener-Policy",
     "Cross-Origin-Embedder-Policy",
-    "Cross-Origin-Resource-Policy"
+    "Cross-Origin-Resource-Policy",
+    "Cache-Control",
+    "Pragma",
+    "X-Permitted-Cross-Domain-Policies",
+    "X-Download-Options",
+    "Expect-CT",
+    "X-Powered-By",
+    "Server",
+    "Set-Cookie",
+    "Access-Control-Allow-Origin"
 )
 
 foreach ($server in $servers) {
