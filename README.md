@@ -157,12 +157,6 @@ Demostrar cómo las configuraciones de nginx impactan la seguridad web mediante:
 
 ## 🛠️ Scripts Adicionales
 
-**Pruebas de Rate Limiting:**
-
-```powershell
-.\rate-limiting-test.ps1 -Url "http://localhost:8080" -NumRequests 100
-```
-
 **Análisis de Headers de Seguridad:**
 
 ```powershell
